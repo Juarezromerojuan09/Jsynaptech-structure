@@ -9,6 +9,7 @@ import webhookRoutes from './routes/webhookRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import integrationRoutes from './routes/integrationRoutes.js';
 import { handleVerify as handleVerifyWhatsApp, handleIncoming as handleIncomingWhatsApp } from './webhooks/whatsappWebhook.js';
+import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
 
 const app = express();
 
@@ -29,10 +30,10 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/webhook', webhookRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/integrations', integrationRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/webhook', webhookRoutes);
 
 // Aliases directos para compatibilidad con Facebook: /webhook
 app.get('/webhook', handleVerifyWhatsApp);
@@ -71,6 +72,10 @@ const io = new Server(httpServer, {
     credentials: true
   }
 });
+
+// Middlewares de errores (DEBEN IR AL FINAL, ANTES DE LA CONFIGURACIÓN DEL SERVIDOR)
+app.use(notFound);
+app.use(errorHandler);
 
 // Socket.IO connection handler
 io.on('connection', (socket) => {
