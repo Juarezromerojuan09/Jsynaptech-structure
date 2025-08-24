@@ -32,8 +32,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    const response = await api.post('/auth/login', { email, password });
+  const login = async (username, password) => {
+    const response = await api.post('/auth/login', { username, password });
     const { token } = response.data;
     localStorage.setItem('token', token);
     const decoded = jwtDecode(token);

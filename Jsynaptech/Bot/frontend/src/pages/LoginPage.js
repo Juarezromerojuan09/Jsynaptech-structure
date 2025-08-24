@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, TextField, Container, Typography, Box } from '@mui/material';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
@@ -17,7 +17,7 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     try {
-      const user = await login(email, password);
+      const user = await login(username, password);
       // Redirigir basado en el rol
       switch (user.role) {
         case 'superadmin':
@@ -43,7 +43,7 @@ const LoginPage = () => {
       <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Typography component="h1" variant="h5">Sign In</Typography>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-          <TextField margin="normal" required fullWidth id="email" label="Email Address" name="email" autoComplete="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
+          <TextField margin="normal" required fullWidth id="username" label="Username" name="username" autoComplete="username" autoFocus value={username} onChange={(e) => setUsername(e.target.value)} />
           <TextField margin="normal" required fullWidth name="password" label="Password" type="password" id="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           {error && <Typography color="error">{error}</Typography>}
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>Sign In</Button>
