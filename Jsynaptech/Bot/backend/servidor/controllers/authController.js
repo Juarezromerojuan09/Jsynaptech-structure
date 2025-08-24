@@ -3,12 +3,19 @@ import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 
 export const login = async (req, res) => {
+  // --- DEBUGGING: Registrar el cuerpo completo de la solicitud ---
+  console.log('Login request body:', req.body);
+  // --- FIN DEBUGGING ---
+
   try {
     const { username, password } = req.body;
 
+    // --- Validación y Depuración Adicional ---
     if (!username || !password) {
-      return res.status(400).json({ error: 'Usuario y contraseña son requeridos' });
+      console.error('Login attempt failed: Username or password missing.', { username: username ? 'present' : 'missing', password: password ? 'present' : 'missing' });
+      return res.status(400).json({ message: 'Por favor, ingrese usuario y contraseña' });
     }
+    // --- Fin de Validación ---
 
     const user = await User.findOne({ username });
 
