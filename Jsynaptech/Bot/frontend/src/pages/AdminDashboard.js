@@ -14,8 +14,15 @@ const AdminDashboard = () => {
       return;
     }
 
+    const finalUrl = `${apiUrl}/integrations/whatsapp/initiate?token=${token}`;
+
+    // --- DEBUGGING --- 
+    console.log('API URL Base:', process.env.REACT_APP_API_URL);
+    console.log('URL de Redirección Final:', finalUrl);
+    // --- FIN DEBUGGING ---
+
     // Añadir el token como query param para que el backend pueda autenticar esta redirección
-    window.location.href = `${apiUrl}/integrations/whatsapp/initiate?token=${token}`;
+    window.location.href = finalUrl;
   };
 
   return (
