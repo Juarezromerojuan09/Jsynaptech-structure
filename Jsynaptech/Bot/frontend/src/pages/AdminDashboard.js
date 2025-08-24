@@ -6,8 +6,16 @@ const AdminDashboard = () => {
     // Redirigir al endpoint del backend que inicia el flujo OAuth
     // Construir la URL base de la API desde las variables de entorno
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
-    // La URL de inicio de OAuth
-    window.location.href = `${apiUrl}/integrations/whatsapp/initiate`;
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      // Opcional: manejar el caso en que no haya token
+      alert('Authentication error. Please log in again.');
+      return;
+    }
+
+    // Añadir el token como query param para que el backend pueda autenticar esta redirección
+    window.location.href = `${apiUrl}/integrations/whatsapp/initiate?token=${token}`;
   };
 
   return (
