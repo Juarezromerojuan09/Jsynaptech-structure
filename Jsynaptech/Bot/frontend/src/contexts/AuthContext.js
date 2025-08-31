@@ -33,7 +33,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (username, password) => {
-    const response = await api.post('/auth/login', { username, password });
+    console.log('Enviando login:', { username, password });
+    try {
+      const response = await api.post('/auth/login', { username, password });
+      console.log('Respuesta exitosa:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en login:', error.response?.data || error.message);
+      throw error;
+    }
     const { token } = response.data;
     localStorage.setItem('token', token);
     const decoded = jwtDecode(token);
