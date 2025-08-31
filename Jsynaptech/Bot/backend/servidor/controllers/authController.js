@@ -1,54 +1,54 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import User from '../models/User.js';
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
-export const login = async (req, res) => {
-  // --- DEBUGGING: Registrar el cuerpo completo de la solicitud ---
-  console.log('Login request body:', req.body);
-  // --- FIN DEBUGGING ---
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '30d',
+  });
+};
+
+// Register user
+const registerUser = async (req, res) => {
+  const { email, password } = req.body;
 
   try {
-    const { username, password } = req.body;
-
-    // --- Validación y Depuración Adicional ---
-    if (!username || !password) {
-      console.error('Login attempt failed: Username or password missing.', { username: username ? 'present' : 'missing', password: password ? 'present' : 'missing' });
-      return res.status(400).json({ message: 'Por favor, ingrese usuario y contraseña' });
-    }
-    // --- Fin de Validación ---
-
-    console.log('Buscando usuario:', username);
-    const user = await User.findOne({ username });
-    console.log('Usuario encontrado:', user ? 'Sí' : 'No', user ? { id: user._id, role: user.role } : null);
-
-    if (!user) {
-      return res.status(401).json({ error: 'Credenciales inválidas' });
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'Usuario ya existe' });
     }
 
-    console.log('Comparando contraseñas...');
-    const valid = await bcrypt.compare(password, user.password);
-    console.log('Contraseña válida:', valid);
+    const user = await User.create({ email, password });
+    const token = generateToken(user._id);
 
-    if (!valid) {
-      return res.status(401).json({ error: 'Credenciales inválidas' });
-    }
-
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '8h' }
-    );
-
-    res.status(200).json({
+    res.status(201).json({
+      _id: user._id,
+      email: user.email,
       token,
-      user: {
-        username: user.username,
-        role: user.role,
-        botNumber: user.botNumber
-      }
     });
-  } catch (err) {
-    console.error('Error en login:', err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
+
+// Login user
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (user && (await user.matchPassword(password))) {
+      const token = generateToken(user._id);
+      res.json({
+        _id: user._id,
+        email: user.email,
+        token,
+      });
+    } else {
+      res.status(401).json({ message: 'Credenciales inválidas' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser };
