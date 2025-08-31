@@ -21,6 +21,7 @@ const parseOrigins = (origins) => {
 };
 
 const allowedOrigins = parseOrigins(process.env.FRONTEND_URL);
+console.log('Allowed origins:', allowedOrigins);
 
 app.use(cors({
   origin: allowedOrigins,
