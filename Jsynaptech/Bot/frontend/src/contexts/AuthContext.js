@@ -1,8 +1,12 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../services/api';
-import { jwtDecode } from 'jwt-decode'; // Asegúrate de instalar jwt-decode
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import jwt_decode from 'jwt-decode';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -12,46 +16,37 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const decoded = jwtDecode(token);
-        // Comprobar si el token ha expirado
-        if (decoded.exp * 1000 > Date.now()) {
-          setUser({ 
-            id: decoded.id,
-            name: decoded.name,
-            role: decoded.role,
-            tenantId: decoded.tenantId
-          });
-        } else {
-          localStorage.removeItem('token');
-        }
+        const decoded = jwt_decode(token);
+        setUser(decoded);
       } catch (error) {
-        console.error('Error decodificando el token:', error);
         localStorage.removeItem('token');
       }
     }
     setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
-    console.log('Enviando login:', { username, password });
-    try {
-      const response = await api.post('/auth/login', { username, password });
-      console.log('Respuesta exitosa:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error en login:', error.response?.data || error.message);
-      throw error;
-    }
+  const login = async (email, password) => {
+    const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+      email,
+      password,
+    });
     const { token } = response.data;
     localStorage.setItem('token', token);
-    const decoded = jwtDecode(token);
-    setUser({ 
-      id: decoded.id,
-      name: decoded.name,
-      role: decoded.role,
-      tenantId: decoded.tenantId
+    const decoded = jwt_decode(token);
+    setUser(decoded);
+    return response.data;
+  };
+
+  const register = async (email, password) => {
+    const response = await axios.post(`${API_BASE_URL}/auth/register`, {
+      email,
+      password,
     });
-    return decoded;
+    const { token } = response.data;
+    localStorage.setItem('token', token);
+    const decoded = jwt_decode(token);
+    setUser(decoded);
+    return response.data;
   };
 
   const logout = () => {
@@ -59,21 +54,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const authContextValue = {
+  const value = {
     user,
-    isAuthenticated: !!user,
-    loading,
     login,
-    logout
+    register,
+    logout,
+    loading,
   };
 
-  return (
-    <AuthContext.Provider value={authContextValue}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  return useContext(AuthContext);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
