@@ -1,12 +1,23 @@
 import dotenv from 'dotenv';
 import connectDB from '../config/db.js';
 import User from '../models/User.js';
+import Tenant from '../models/Tenant.js';
 
 dotenv.config();
 
 async function run() {
   try {
     await connectDB();
+
+    // Crear o encontrar tenant por defecto
+    let tenant = await Tenant.findOne({ name: 'Default Tenant' });
+    if (!tenant) {
+      tenant = new Tenant({ name: 'Default Tenant', status: 'active' });
+      await tenant.save();
+      console.log('Tenant creado:', tenant._id);
+    } else {
+      console.log('Tenant existente:', tenant._id);
+    }
 
     const [,, usernameArg, passwordArg, botNumberArg, roleArg] = process.argv;
     const username = usernameArg || 'admin';
@@ -20,7 +31,7 @@ async function run() {
       process.exit(0);
     }
 
-    const user = new User({ username, password, botNumber, role });
+    const user = new User({ username, password, botNumber, role, tenantId: tenant._id });
     await user.save();
 
     console.log('Usuario creado correctamente');

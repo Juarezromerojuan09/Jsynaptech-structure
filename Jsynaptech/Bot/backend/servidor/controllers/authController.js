@@ -17,13 +17,18 @@ export const login = async (req, res) => {
     }
     // --- Fin de Validación ---
 
+    console.log('Buscando usuario:', username);
     const user = await User.findOne({ username });
+    console.log('Usuario encontrado:', user ? 'Sí' : 'No', user ? { id: user._id, role: user.role } : null);
 
     if (!user) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    console.log('Comparando contraseñas...');
     const valid = await bcrypt.compare(password, user.password);
+    console.log('Contraseña válida:', valid);
+
     if (!valid) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
@@ -43,6 +48,7 @@ export const login = async (req, res) => {
       }
     });
   } catch (err) {
+    console.error('Error en login:', err);
     res.status(500).json({ error: err.message });
   }
 };
