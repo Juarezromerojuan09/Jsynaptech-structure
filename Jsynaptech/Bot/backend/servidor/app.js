@@ -20,12 +20,17 @@ const parseOrigins = (origins) => {
   return origins.split(',').map(o => o.trim());
 };
 
-const allowedOrigins = parseOrigins(process.env.FRONTEND_URL);
-console.log('Allowed origins:', allowedOrigins);
-
-app.use(cors({
-  origin: '*' // Temporarily allow all for debug
-}));
+// Temporarily manual CORS for debug
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
 app.use(express.json());
 
 // Routes
