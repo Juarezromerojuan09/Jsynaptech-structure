@@ -24,8 +24,7 @@ const allowedOrigins = parseOrigins(process.env.FRONTEND_URL);
 console.log('Allowed origins:', allowedOrigins);
 
 app.use(cors({
-  origin: true, // Temporarily allow all for debug
-  credentials: true
+  origin: '*' // Temporarily allow all for debug
 }));
 app.use(express.json());
 
