@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import connectDB from '../config/db.js';
 import User from '../models/User.js';
 import Tenant from '../models/Tenant.js';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -25,13 +26,25 @@ async function run() {
     const botNumber = botNumberArg || '521234567890';
     const role = roleArg || 'admin'; // 'admin' | 'agent'
 
+    // Verificar si el usuario ya existe
     const existing = await User.findOne({ username });
     if (existing) {
       console.log(`Usuario ya existe: ${username}`);
       process.exit(0);
     }
 
-    const user = new User({ username, password, botNumber, role, tenantId: tenant._id });
+    // Hashear la contraseña antes de guardar
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear usuario con contraseña hasheada
+    const user = new User({
+      username,
+      password: hashedPassword,
+      botNumber,
+      role,
+      tenantId: tenant._id
+    });
+
     await user.save();
 
     console.log('Usuario creado correctamente');
